@@ -1,0 +1,100 @@
+service: feedbacks-reclamacoes
+
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: python3.11
+  region: us-east-1
+  stage: dev
+  environment:
+    QUEUE_URL: { Ref: FeedbacksReclamacoesQueue }
+    TABLE_NAME: FeedbacksReclamacoes
+    SNS_TOPIC_ARN: { Ref: FeedbacksNotificationsTopic }
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - sqs:SendMessage
+          Resource:
+            - Fn::GetAtt: [FeedbacksReclamacoesQueue, Arn]
+
+        - Effect: Allow
+          Action:
+            - sqs:ReceiveMessage
+            - sqs:DeleteMessage
+            - sqs:GetQueueAttributes
+          Resource:
+            - Fn::GetAtt: [FeedbacksReclamacoesQueue, Arn]
+
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+          Resource:
+            - Fn::GetAtt: [FeedbacksReclamacoesTable, Arn]
+
+        - Effect: Allow
+          Action:
+            - sns:Publish
+          Resource:
+            - Ref: FeedbacksNotificationsTopic
+
+functions:
+  receiver:
+    handler: src/receiver.handler
+    events:
+      - http:
+          path: feedbacks
+          method: post
+          cors: true
+          request:
+            schemas:
+              application/json: ${file(schemas/feedback_request.json)}
+
+  processor:
+    handler: src/processor.handler
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt: [FeedbacksReclamacoesQueue, Arn]
+          batchSize: 10
+
+resources:
+  Resources:
+    FeedbacksReclamacoesQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: FeedbacksReclamacoesQueue
+
+    FeedbacksReclamacoesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: FeedbacksReclamacoes
+        BillingMode: PROVISIONED
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+        AttributeDefinitions:
+          - AttributeName: id_cliente
+            AttributeType: S
+          - AttributeName: data_hora
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id_cliente
+            KeyType: HASH
+          - AttributeName: data_hora
+            KeyType: RANGE
+
+    FeedbacksNotificationsTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: FeedbacksReclamacoesNotifications
+
+    FeedbacksNotificationsSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        Protocol: email
+        Endpoint: seu-email@exemplo.com
+        TopicArn:
+          Ref: FeedbacksNotificationsTopic

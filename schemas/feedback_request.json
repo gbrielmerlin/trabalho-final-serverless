@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "FeedbackRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id_cliente", "descricao", "categoria", "data_hora"],
+  "properties": {
+    "id_cliente": {
+      "type": "string",
+      "minLength": 1
+    },
+    "descricao": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "categoria": {
+      "type": "string",
+      "enum": ["elogio", "reclamação", "sugestão"]
+    },
+    "data_hora": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}
