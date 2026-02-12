@@ -10,7 +10,6 @@ provider:
   environment:
     QUEUE_URL: { Ref: FeedbacksReclamacoesQueue }
     TABLE_NAME: FeedbacksReclamacoes
-    SNS_TOPIC_ARN: { Ref: FeedbacksNotificationsTopic }
   iam:
     role: arn:aws:iam::884334547351:role/LabRole
 
@@ -59,16 +58,3 @@ resources:
             KeyType: HASH
           - AttributeName: data_hora
             KeyType: RANGE
-
-    FeedbacksNotificationsTopic:
-      Type: AWS::SNS::Topic
-      Properties:
-        TopicName: FeedbacksReclamacoesNotifications
-
-    FeedbacksNotificationsSubscription:
-      Type: AWS::SNS::Subscription
-      Properties:
-        Protocol: email
-        Endpoint: seu-email@exemplo.com
-        TopicArn:
-          Ref: FeedbacksNotificationsTopic
