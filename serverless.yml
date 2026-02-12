@@ -12,33 +12,7 @@ provider:
     TABLE_NAME: FeedbacksReclamacoes
     SNS_TOPIC_ARN: { Ref: FeedbacksNotificationsTopic }
   iam:
-    role:
-      statements:
-        - Effect: Allow
-          Action:
-            - sqs:SendMessage
-          Resource:
-            - Fn::GetAtt: [FeedbacksReclamacoesQueue, Arn]
-
-        - Effect: Allow
-          Action:
-            - sqs:ReceiveMessage
-            - sqs:DeleteMessage
-            - sqs:GetQueueAttributes
-          Resource:
-            - Fn::GetAtt: [FeedbacksReclamacoesQueue, Arn]
-
-        - Effect: Allow
-          Action:
-            - dynamodb:PutItem
-          Resource:
-            - Fn::GetAtt: [FeedbacksReclamacoesTable, Arn]
-
-        - Effect: Allow
-          Action:
-            - sns:Publish
-          Resource:
-            - Ref: FeedbacksNotificationsTopic
+    role: arn:aws:iam::884334547351:role/LabRole
 
 functions:
   receiver:
