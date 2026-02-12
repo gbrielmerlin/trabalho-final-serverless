@@ -3,10 +3,8 @@ import os
 import boto3
 
 dynamodb = boto3.resource("dynamodb")
-sns = boto3.client("sns")
 
 TABLE_NAME = os.environ["TABLE_NAME"]
-SNS_TOPIC_ARN = os.environ["SNS_TOPIC_ARN"]
 
 table = dynamodb.Table(TABLE_NAME)
 
@@ -30,13 +28,8 @@ def handler(event, context):
                 f"Descrição: {payload['descricao']}\n"
             )
 
-            sns.publish(
-                TopicArn=SNS_TOPIC_ARN,
-                Subject="Novo feedback/reclamação (e-commerce)",
-                Message=msg
-            )
-
         except Exception as e:
             raise RuntimeError(f"Falha ao processar mensagem SQS: {str(e)}")
 
     return {"statusCode": 200}
+
